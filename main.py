@@ -1,20 +1,42 @@
+import sys
 import os
+import argparse
+
 from dotenv import load_dotenv
 from google import genai
+from google.genai import types
 load_dotenv()
 
 KEY = os.environ.get("GEMINI")
 MODEL="gemini-2.0-flash"
 
-client = genai.Client(api_key=KEY)
-response = client.models.generate_content(
-    model=MODEL,
-    contents='What\'s agentic AI? Answer within 5 sentences.',
-)
+def main(prompt, verbose):
+    history = [types.Context(role="user", parts=[types.Part(text=prompt)])]
 
-print(response.text)
-print(f"prompt tokens: {response.usage_metadata.prompt_token_count}")
-print(f"response tokens: {response.usage_metadata.candidates_token_count}")
-# print(response)
+    client = genai.Client(api_key=KEY)
+    response = client.models.generate_content(
+        model=MODEL,
+        contents=history,
+    )
 
-client.close()
+    if verbose:
+        print(f"User: {prompt}")
+    print(f"CodeBuddy: {response.text}")
+    if verbose:
+        print(f"Prompt Tokens: {response.usage_metadata.prompt_token_count}")
+        print(f"Response Tokens: {response.usage_metadata.candidates_token_count}")
+        # print(response)
+
+    client.close()
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+                    prog='CodingBuddy',
+                    description='Your friendly AI that helps you code',
+                    epilog='Help-\nhelp description')
+    parser.add_argument("prompt")
+    parser.add_argument("-v", "--verbose", action="store_true")
+    args = parser.parse_args()
+    # print(args.prompt, args.verbose)
+    # print(args)
+    main(args.prompt, args.verbose)
