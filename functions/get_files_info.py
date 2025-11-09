@@ -1,8 +1,6 @@
 import os
 from pathlib import Path
 
-from pathlib import Path
-
 def get_dir_size(path: str | Path) -> int:
     path = Path(path).resolve(strict=True)
     total = 0
