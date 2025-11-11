@@ -1,5 +1,24 @@
 from pathlib import Path
 import os
+from google.genai import types
+
+schema_write_file = types.FunctionDeclaration(
+    name="write_file",
+    description="writes onto a python file, given its path and content",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        propterties={
+            "filepath": types.Schema(
+                type=types.Type.STRING,
+                description="The file path to write content onto, relative to pwd."
+            ),
+            "content": types.Schema(
+                type=types.Type.STRING,
+                description="Content to write onto the python file,"
+            )
+        },
+    ),
+)
 def write_file(current_directory, filepath, content):
     dest_path = os.path.join(current_directory, filepath)
     pwd = Path(current_directory).resolve()

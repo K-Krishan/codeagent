@@ -1,7 +1,21 @@
 from pathlib import Path
 import subprocess
 import os
+from google.genai import types
 
+schema_run_python_file = types.FunctionDeclaration(
+    name="run_python_file",
+    description="Runs a python script with a 30s timeout and returns result.",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        propterties={
+            "filepath": types.Schema(
+                type=types.Type.STRING,
+                description="The path to python script, relative to pwd."
+            ),
+        },
+    ),
+)
 def run_python_file(current_directory, filepath, args=[]):
     dest_path = os.path.join(current_directory, filepath)
     pwd = Path(current_directory).resolve()

@@ -1,7 +1,21 @@
 import os
 from pathlib import Path 
 CHAR_LIMIT = 10000
+from google.genai import types
 
+schema_get_files_content = types.FunctionDeclaration(
+    name="get_files_content",
+    description="returns content in a python file as string, if the file exists.",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        propterties={
+            "filepath": types.Schema(
+                type=types.Type.STRING,
+                description="The file path to return content from, relative to pwd."
+            ),
+        },
+    ),
+)
 def get_file_content(current_directory, filepath):
     dest_path = os.path.join(current_directory, filepath)
     pwd = Path(current_directory).resolve()

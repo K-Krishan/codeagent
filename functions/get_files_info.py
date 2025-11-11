@@ -1,6 +1,20 @@
 import os
 from pathlib import Path
+from google.genai import types
 
+schema_get_files_info = types.FunctionDeclaration(
+    name="get_files_info",
+    description="Lists files in a directory along with their sizes, and info about them being a directory or not.",
+    parameters=types.Schema(
+        type=types.Type.OBJECT,
+        propterties={
+            "directory": types.Schema(
+                type=types.Type.STRING,
+                description="The directory to list files from, relative to pwd."
+            ),
+        },
+    ),
+)
 def get_dir_size(path: str | Path) -> int:
     path = Path(path).resolve(strict=True)
     total = 0
