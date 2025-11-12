@@ -8,7 +8,7 @@ schema_get_files_content = types.FunctionDeclaration(
     description="returns content in a python file as string, if the file exists.",
     parameters=types.Schema(
         type=types.Type.OBJECT,
-        propterties={
+        properties={
             "filepath": types.Schema(
                 type=types.Type.STRING,
                 description="The file path to return content from, relative to pwd."

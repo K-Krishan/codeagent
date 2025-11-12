@@ -8,7 +8,7 @@ schema_run_python_file = types.FunctionDeclaration(
     description="Runs a python script with a 30s timeout and returns result.",
     parameters=types.Schema(
         type=types.Type.OBJECT,
-        propterties={
+        properties={
             "filepath": types.Schema(
                 type=types.Type.STRING,
                 description="The path to python script, relative to pwd."

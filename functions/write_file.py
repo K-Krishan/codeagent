@@ -7,7 +7,7 @@ schema_write_file = types.FunctionDeclaration(
     description="writes onto a python file, given its path and content",
     parameters=types.Schema(
         type=types.Type.OBJECT,
-        propterties={
+        properties={
             "filepath": types.Schema(
                 type=types.Type.STRING,
                 description="The file path to write content onto, relative to pwd."

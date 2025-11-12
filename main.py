@@ -24,6 +24,9 @@ def main(prompt, verbose):
     When a user asks a question or makes a request, make a function call plan. You can perform the following operations:
 
     - List files and directories
+    - Read file contents
+    - Execute Python files with optional arguments
+    - Write or overwrite files
 
     All paths you provide should be relative to the working directory. You do not need to specify the working directory in your function calls as it is automatically injected for security reasons.
     """
@@ -36,6 +39,7 @@ def main(prompt, verbose):
         ]
     )
     client = genai.Client(api_key=KEY)
+    
     response = client.models.generate_content(
         model=MODEL,
         contents=history,
@@ -47,6 +51,14 @@ def main(prompt, verbose):
 
     if verbose:
         print(f"User: {prompt}")
+    print('Inspecting Project:')
+    for func in response.function_calls:
+        # print(f'Using function: {func.name}({func.args})')
+        resp = function_handler(func, verbose)
+        try:
+            print(f"-> {resp.parts[0].function_response.response}")
+        except:
+            raise "fatal exception: function returned did not have parts"
     print(f"CodeBuddy: {response.text}")
     if verbose:
         print(f"Prompt Tokens: {response.usage_metadata.prompt_token_count}")
@@ -54,6 +66,36 @@ def main(prompt, verbose):
         # print(response)
 
     client.close()
+
+def function_handler(func : types.FunctionCall, verbose=False):
+    if verbose:
+        print(f'Calling function: {func.name}({func.args})')
+    else:
+        print(f" - Calling function: {func.name}")
+    func_list = {
+        "get_files_content":get_file_content,
+        "get_files_info":get_files_info,
+        "run_python_file":run_python_file,
+        "write_file":write_file,
+    }
+    if func not in func_list.keys():
+        return types.Content(
+            role="tool",
+            parts=[
+                types.Part.from_function_response(
+                    name=func.name,
+                    response={"error": f"Unknown function: {func.name}"},
+                )
+            ],
+        )
+    resp = func_list[func.name]("calc", **func.args )   # replace calc with working directory (TODO to find a viable solution that doesn't hardcode this and doesnt need passing directory every query)
+    return types.Content(
+        role="tool",
+        parts=types.Part.from_function_response(
+            name=func.name,
+            response={'result':resp}
+        )
+    )
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(

@@ -7,12 +7,12 @@ schema_get_files_info = types.FunctionDeclaration(
     description="Lists files in a directory along with their sizes, and info about them being a directory or not.",
     parameters=types.Schema(
         type=types.Type.OBJECT,
-        propterties={
+        properties={
             "directory": types.Schema(
                 type=types.Type.STRING,
                 description="The directory to list files from, relative to pwd."
             ),
-        },
+        }
     ),
 )
 def get_dir_size(path: str | Path) -> int:
