@@ -12,6 +12,7 @@ from functions.get_file_content import get_file_content, schema_get_files_conten
 from functions.write_file import write_file, schema_write_file
 from functions.run_python_file import run_python_file, schema_run_python_file
 
+WORKING_DIRECTORY = "calc"
 KEY = os.environ.get("GEMINI")
 MODEL="gemini-2.0-flash"
 MAX_TRIALS = 15
@@ -56,8 +57,6 @@ def main(prompt, verbose):
         if response.function_calls:
             for function_call in response.function_calls:
                 result = function_handler(function_call, verbose)
-                # if verbose:
-                #     print(result.parts[0].response)
                 history.append(result)
         else:
             print(response.text)
@@ -76,8 +75,6 @@ def function_handler(func : types.FunctionCall, verbose=False):
         "write_file":write_file,
     }
     if func.name not in func_list.keys():
-        # if verbose:
-        #     print(f"Unknown function: {func.name}")
         return types.Content(
             role="tool",
             parts=[
@@ -87,9 +84,7 @@ def function_handler(func : types.FunctionCall, verbose=False):
                 )
             ],
         )
-    resp = func_list[func.name]("calc", **func.args )   # replace calc with working directory (TODO to find a viable solution that doesn't hardcode this and doesnt need passing directory every query)
-    # if verbose:
-    #     print(resp)
+    resp = func_list[func.name](WORKING_DIRECTORY, **func.args )  
     return types.Content(
         role="tool",
         parts=[
