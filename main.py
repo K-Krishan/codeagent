@@ -76,8 +76,8 @@ def function_handler(func : types.FunctionCall, verbose=False):
         "write_file":write_file,
     }
     if func.name not in func_list.keys():
-        if verbose:
-            print(f"Unknown function: {func.name}")
+        # if verbose:
+        #     print(f"Unknown function: {func.name}")
         return types.Content(
             role="tool",
             parts=[
@@ -88,8 +88,8 @@ def function_handler(func : types.FunctionCall, verbose=False):
             ],
         )
     resp = func_list[func.name]("calc", **func.args )   # replace calc with working directory (TODO to find a viable solution that doesn't hardcode this and doesnt need passing directory every query)
-    if verbose:
-        print(resp)
+    # if verbose:
+    #     print(resp)
     return types.Content(
         role="tool",
         parts=[
