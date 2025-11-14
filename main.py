@@ -14,6 +14,7 @@ from functions.run_python_file import run_python_file, schema_run_python_file
 
 KEY = os.environ.get("GEMINI")
 MODEL="gemini-2.0-flash"
+MAX_TRIALS = 15
 
 def main(prompt, verbose):
     # history = [types.Context(role="user", parts=[types.Part(text=prompt)])]
@@ -40,31 +41,27 @@ def main(prompt, verbose):
     )
     client = genai.Client(api_key=KEY)
     
-    response = client.models.generate_content(
-        model=MODEL,
-        contents=history,
-        config=types.GenerateContentConfig(
-            system_instruction=system,
-            tools=[available_functions],
+    for it in range(MAX_TRIALS):
+        response = client.models.generate_content(
+            model=MODEL,
+            contents=history,
+            config=types.GenerateContentConfig(
+                system_instruction=system,
+                tools=[available_functions],
+            )
         )
-    )
-
-    if verbose:
-        print(f"User: {prompt}")
-    print('Inspecting Project:')
-    for func in response.function_calls:
-        # print(f'Using function: {func.name}({func.args})')
-        resp = function_handler(func, verbose)
-        try:
-            print(f"-> {resp.parts[0].function_response.response}")
-        except:
-            raise "fatal exception: function returned did not have parts"
-    print(f"CodeBuddy: {response.text}")
-    if verbose:
-        print(f"Prompt Tokens: {response.usage_metadata.prompt_token_count}")
-        print(f"Response Tokens: {response.usage_metadata.candidates_token_count}")
-        # print(response)
-
+        if response.candidates:
+            for candidate in response.candidates:
+                history.append(candidate.content)
+        if response.function_calls:
+            for function_call in response.function_calls:
+                result = function_handler(function_call, verbose)
+                # if verbose:
+                #     print(result.parts[0].response)
+                history.append(result)
+        else:
+            print(response.text)
+            break
     client.close()
 
 def function_handler(func : types.FunctionCall, verbose=False):
@@ -78,7 +75,9 @@ def function_handler(func : types.FunctionCall, verbose=False):
         "run_python_file":run_python_file,
         "write_file":write_file,
     }
-    if func not in func_list.keys():
+    if func.name not in func_list.keys():
+        if verbose:
+            print(f"Unknown function: {func.name}")
         return types.Content(
             role="tool",
             parts=[
@@ -89,12 +88,16 @@ def function_handler(func : types.FunctionCall, verbose=False):
             ],
         )
     resp = func_list[func.name]("calc", **func.args )   # replace calc with working directory (TODO to find a viable solution that doesn't hardcode this and doesnt need passing directory every query)
+    if verbose:
+        print(resp)
     return types.Content(
         role="tool",
-        parts=types.Part.from_function_response(
-            name=func.name,
-            response={'result':resp}
-        )
+        parts=[
+            types.Part.from_function_response(
+                name=func.name,
+                response={'result':resp}
+            )
+        ]
     )
 
 if __name__ == "__main__":
